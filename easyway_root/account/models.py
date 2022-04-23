@@ -9,6 +9,7 @@ from api.models import *
 class User(django.contrib.auth.models.AbstractUser):
     is_verified = models.BooleanField(default=False)
     avatar = models.ImageField(upload_to='', null=True)
+    has_shop = models.BooleanField(default=False)
 
 class Shop(models.Model):
     passport_forward = models.ImageField(upload_to='')
@@ -18,5 +19,5 @@ class Shop(models.Model):
     phone_number = models.CharField(max_length=20)
     slug = models.CharField(max_length=255)
     description = models.TextField()
-    logo = models.ImageField(upload_to='')
+    logo = models.ImageField(upload_to='', null=True)
     city = models.ForeignKey(City, on_delete=models.CASCADE)
