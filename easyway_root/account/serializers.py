@@ -6,12 +6,12 @@ from .models import *
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailFiel(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
     class Meta:
         model = User
-        field = ('first_name', 'last_name', 'username',)
+        fields = ("username", "password", "password2", "email", "first_name", "last_name")
         extra_kwargs={
             'first_name': {'required': True},
             'last_name': {'required': True}
@@ -31,46 +31,34 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-class RegisterShopSerializer(serializers.Serializer):
-    owner_email = serializers.EmailFiel(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
-    owner_first_name = serializers.CharField(max_length=255)
-    owner_last_name = serializers.CharField(max_length=255)
-    owner_username = models.CharField(
-        validators=[UnicodeUsernameValidator],
-        max_length=150,
-        unique=True,
-        help_text=(
-            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
-        ),
-        error_messages={
-            "unique": ("A user with that username already exists."),
-        },
-    )
+class RegisterShopSerializer(serializers.ModelSerializer):
+    user = RegisterUserSerializer()
     class Meta:
         model = Shop
-        fields = '__all__'
+        fields = (
+            'passport_forward', 'passport_backward', 'shop_name', 'phone_number', 'slug', 'description', 'logo', 'city',
+            'user', 'id'
+        )
     def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
+        if attrs['user']['password'] != attrs['user']['password2']:
             raise serializers.ValidationError({'password': "Password fields didn't match."})
         return attrs
 
     def create(self, validated_data):
         owner = User.objects.create(
-            username=validated_data['owner_username'],
-            first_name=validated_data['owner_first_name'],
-            last_name=validated_data['owner_last_name'],
-            email=validated_data['owner_email']
+            username=validated_data['user']['username'],
+            first_name=validated_data['user']['first_name'],
+            last_name=validated_data['user']['last_name'],
+            email=validated_data['user']['email']
         )
-        owner.set_password(validated_data['password'])
+        owner.set_password(validated_data['user']['password'])
         owner.has_shop = True
         owner.save()
         shop = Shop.objects.create(
             passport_forward=validated_data['passport_forward'],
             passport_backward=validated_data['passport_backward'],
             user=owner,
-            shop_name=validated_data['owner_email'],
+            shop_name=validated_data['shop_name'],
             phone_number=validated_data['phone_number'],
             slug=validated_data['slug'],
             description=validated_data['description'],
@@ -78,3 +66,4 @@ class RegisterShopSerializer(serializers.Serializer):
             city=validated_data['city'],
         )
         shop.save()
+        return shop
