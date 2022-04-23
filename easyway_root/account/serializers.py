@@ -36,8 +36,8 @@ class RegisterShopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shop
         fields = (
-            'passport_forward', 'passport_backward', 'shop_name', 'phone_number', 'slug', 'description', 'logo', 'city',
-            'user', 'id'
+            'user', 'passport_forward', 'passport_backward', 'shop_name', 'phone_number', 'slug', 'description', 'logo',
+            'city', 'id'
         )
     def validate(self, attrs):
         if attrs['user']['password'] != attrs['user']['password2']:
