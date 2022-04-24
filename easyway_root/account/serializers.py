@@ -67,3 +67,14 @@ class RegisterShopSerializer(serializers.ModelSerializer):
         )
         shop.save()
         return shop
+class ResendEmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email']
+    def validate(self, attrs):
+        user = User.objects.get(email=attrs['email'])
+        if not user:
+            raise serializers.ValidationError({'email': "User with this email doesn't exist"})
+        if user.is_verified:
+            raise serializers.ValidationError({'email': "User already confirmed email"})
+        return user

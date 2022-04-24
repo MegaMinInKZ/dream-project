@@ -75,6 +75,29 @@ class RegisterShopView(generics.CreateAPIView):
         }
         Util.send_email(data)
         return Response(shop_data, status=status.HTTP_201_CREATED)
+class ResendEmailView(generics.CreateAPIView):
+    serializer_class = ResendEmailSerializer
+    permission_classes = [AllowAny]
+    def post(self, request):
+        user = request.data
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+        user_data = serializer.data
+        user_email = User.objects.get(email=user_data['email'])
+        token = RefreshToken.for_user((user_email)).access_token
+        current_site = get_current_site(request).domain
+        relative_link = reverse('email-verify')
+        absurl = 'http://' + current_site + relative_link + '?token=' + str(token)
+        email_body = 'Hi, ' + user_email.username + ', use link to verify your email\n' + absurl
+        data = {
+            'domain': current_site,
+            'email_subject': 'Verify your email',
+            'email_body': email_body,
+            'to_email': [user_email.email],
+        }
+        Util.send_email(data)
+        return Response(user_data, status=status.HTTP_201_CREATED)
+
 # Create your views here.
 
 

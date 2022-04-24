@@ -20,4 +20,4 @@ class Shop(models.Model):
     slug = models.CharField(max_length=255)
     description = models.TextField()
     logo = models.ImageField(upload_to='shop/logo/%Y/%m', null=True)
-    city = models.ForeignKey(City, on_delete=models.CASCADE)
+    city = models.ForeignKey('api.City', on_delete=models.CASCADE)
