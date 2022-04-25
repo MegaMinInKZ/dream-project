@@ -6,6 +6,16 @@ from .serializers import *
 # Create your views here.
 
 
+class ShopListView(ListAPIView):
+    queryset = Shop.objects.all()
+    serializer_class = ShopSerializer
+
+class ShopView(ListAPIView):
+    serializer_class = ProductSerializer
+    def get_queryset(self):
+        shop = Shop.objects.get(slug=self.kwargs['slug'])
+        return Product.objects.filter(shop=shop)
+
 class ProductRetrieveView(RetrieveAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'slug'
